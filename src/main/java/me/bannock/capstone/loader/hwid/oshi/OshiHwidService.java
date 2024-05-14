@@ -1,4 +1,4 @@
-package me.bannock.capstone.loader.hwid.backend;
+package me.bannock.capstone.loader.hwid.oshi;
 
 import me.bannock.capstone.loader.hwid.HwidService;
 import oshi.SystemInfo;
@@ -9,7 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-public class BackendHwidServiceImpl implements HwidService {
+public class OshiHwidService implements HwidService {
 
     @Override
     public String getHwid() {
@@ -20,7 +20,10 @@ public class BackendHwidServiceImpl implements HwidService {
             hwidBuilder.append(graphicsCard.getDeviceId()).append(graphicsCard.getName()).append(graphicsCard.getVendor()).append(graphicsCard.getVRam());
         }
         CentralProcessor.ProcessorIdentifier processorIdentifier = systemInfo.getHardware().getProcessor().getProcessorIdentifier();
-        hwidBuilder.append(processorIdentifier.getFamily()).append(processorIdentifier.getIdentifier()).append(processorIdentifier.getVendor()).append(processorIdentifier.getMicroarchitecture());
+        hwidBuilder.append(processorIdentifier.getFamily());
+        hwidBuilder.append(processorIdentifier.getIdentifier());
+        hwidBuilder.append(processorIdentifier.getVendor());
+        hwidBuilder.append(processorIdentifier.getMicroarchitecture());
 
         String hwid;
         try {

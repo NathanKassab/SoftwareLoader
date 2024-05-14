@@ -2,19 +2,21 @@ package me.bannock.capstone.loader.account;
 
 public class AccountDTO {
 
-    public AccountDTO(long uid, String email, String username, String apiKey, String hwid) {
+    public AccountDTO(long uid, String email, String username, String hwid) {
         this.uid = uid;
         this.email = email;
         this.username = username;
-        this.apiKey = apiKey;
         this.hwid = hwid;
     }
 
-    private final long uid;
-    private final String email;
-    private final String username;
-    private final String apiKey;
-    private final String hwid;
+    public AccountDTO(){
+
+    }
+
+    private long uid;
+    private String email;
+    private String username;
+    private String hwid;
 
     public long getUid() {
         return uid;
@@ -28,12 +30,19 @@ public class AccountDTO {
         return username;
     }
 
-    public String getApiKey() {
-        return apiKey;
-    }
 
     public String getHwid() {
         return hwid;
+    }
+
+    @Override
+    public String toString() {
+        return "AccountDTO{" +
+                "uid=" + uid +
+                ", email='" + email + '\'' +
+                ", username='" + username + '\'' +
+                ", hwid='" + hwid + '\'' +
+                '}';
     }
 
 }

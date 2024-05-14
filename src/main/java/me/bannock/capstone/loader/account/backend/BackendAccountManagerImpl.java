@@ -1,9 +1,9 @@
-package me.bannock.capstone.loader.products.backend;
+package me.bannock.capstone.loader.account.backend;
 
-import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
-import me.bannock.capstone.loader.products.ProductDTO;
-import me.bannock.capstone.loader.products.ProductService;
+import me.bannock.capstone.loader.account.AccountDTO;
+import me.bannock.capstone.loader.account.AccountManager;
+import me.bannock.capstone.loader.account.AccountManagerException;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -14,50 +14,51 @@ import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Optional;
 
-public class BackendProductServiceImpl implements ProductService {
+public class BackendAccountManagerImpl implements AccountManager {
 
     private final Logger logger = LogManager.getLogger();
     private final CloseableHttpClient client = HttpClientBuilder.create().disableCookieManagement().build();
 
 //    private final String apiKey = "BNOK_%%API_KEY%%";
+//    private final String uid = "BNOK_%%UID%%";
 //    private final String serverIp = "BNOK_%%IP%%";
 //    private final String protocol = "BNOK_%%PROTOCOL%%";
 
     private final String apiKey = "5bde0aa5-e477-4f6a-ab6e-277888f16504";
+    private final String uid = "0";
     private final String serverIp = "localhost:8080";
     private final String protocol = "http";
 
-    @Override
-    public List<ProductDTO> getOwnedProducts() throws RuntimeException {
-        HttpGet getOwnedProducts = new HttpGet(String.format("%s://%s/api/products/1/getOwnedProducts", protocol, serverIp));
-        addAuthHeaderInfo(getOwnedProducts);
-        getOwnedProducts.addHeader("Accept", "application/json");
+    private AccountDTO user = null;
 
-        try(CloseableHttpResponse loginResponse = client.execute(getOwnedProducts)) {
+    @Override
+    public void login(String hwid) throws AccountManagerException {
+        HttpGet login = new HttpGet(String.format("%s://%s/api/accounts/1/login?hwid=%s", protocol, serverIp, hwid));
+        addAuthHeaderInfo(login);
+        login.addHeader("Accept", "application/json");
+
+        try(CloseableHttpResponse loginResponse = client.execute(login)) {
             String content = EntityUtils.toString(loginResponse.getEntity());
 
             if (loginResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK)
-                throw new RuntimeException(content);
+                throw new AccountManagerException(content, uid, apiKey);
 
-            Type productDtoListType = new TypeToken<ArrayList<ProductDTO>>() {}.getType();
-            List<ProductDTO> products = new Gson().fromJson(content, productDtoListType);
-            logger.info("Fetched user's products: {}", products);
-            return products;
+            // We now map the json response to an account dto
+            this.user = new Gson().fromJson(content, AccountDTO.class);
+            logger.info("Logged user in, user={}", user);
+
         } catch (IOException e) {
-            logger.warn("Something went wrong while fetching the user's product list", e);
-            throw new RuntimeException(e.getMessage());
+            logger.warn("Something went wrong while logging user into their account", e);
+            throw new AccountManagerException(e.getMessage(), uid, apiKey);
         }
     }
 
     @Override
-    public File downloadProduct() throws RuntimeException {
-        return null;
+    public Optional<AccountDTO> getUser() {
+        return Optional.of(user);
     }
 
     /**

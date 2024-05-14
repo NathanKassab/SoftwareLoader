@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration status="WARN">
+    <properties>
+        <property name="fullLogMsgPattern">[%d{HH:mm:ss}] [%-5p] %c{2.} --- %msg%xEx%n</property>
+        <property name="minLogMsgPattern">%d{HH:mm} %-5p %c{1.} - %msg%n</property>
+    </properties>
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="${minLogMsgPattern}" />
+        </Console>
+        <File name="LogFile" fileName="loader.log">
+            <PatternLayout pattern="${fullLogMsgPattern}" />
+        </File>
+    </Appenders>
+    <Loggers>
+        <Root level="debug">
+            <AppenderRef ref="Console" />
+            <AppenderRef ref="LogFile"/>
+        </Root>
+    </Loggers>
+
+</configuration>

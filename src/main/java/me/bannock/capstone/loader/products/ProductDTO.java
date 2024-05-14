@@ -34,4 +34,15 @@ public class ProductDTO {
         return ownerUid;
     }
 
+    @Override
+    public String toString() {
+        return "ProductDTO{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", iconUrl='" + iconUrl + '\'' +
+                ", description='" + description + '\'' +
+                ", ownerUid=" + ownerUid +
+                '}';
+    }
+
 }
