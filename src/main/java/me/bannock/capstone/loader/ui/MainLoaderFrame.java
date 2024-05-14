@@ -1,6 +1,7 @@
 package me.bannock.capstone.loader.ui;
 
 import com.google.inject.Inject;
+import com.google.inject.Injector;
 import me.bannock.capstone.loader.products.ProductService;
 
 import javax.swing.JFrame;
@@ -11,20 +12,22 @@ import javax.swing.JMenuItem;
 public class MainLoaderFrame extends JFrame {
 
     @Inject
-    public MainLoaderFrame(ProductService productService){
+    public MainLoaderFrame(ProductService productService, Injector injector){
         this.productService = productService;
+        this.injector = injector;
     }
 
-    private final static int WINDOW_WIDTH = 400, WINDOW_HEIGHT = 350;
-    private final static String WINDOW_TITLE = "Ultra-cool 'n secure loader #1";
-
     private final ProductService productService;
+    private final Injector injector;
 
+    /**
+     * Populates this frame with the needed components. Does not clear or remove old components
+     */
     public void populateFrame(){
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setResizable(false);
-        setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
-        setTitle(WINDOW_TITLE);
+        setSize(550, 425);
+        setTitle("Ultra-cool 'n secure loader #1");
         setJMenuBar(createMenuBar());
         productService.getOwnedProducts();
     }
@@ -34,9 +37,10 @@ public class MainLoaderFrame extends JFrame {
 
         JMenu helpMenu = new JMenu("Help");
         menuBar.add(helpMenu);
-        JMenuItem kill = new JMenuItem("Close loader");
-        kill.addActionListener((evt) -> System.exit(0));
-        helpMenu.add(kill);
+
+        JMenuItem myAccount = new JMenuItem("My account");
+        myAccount.addActionListener(evt -> injector.getInstance(AboutAccountFrame.class).showAndCreateWithParent(this));
+        helpMenu.add(myAccount);
 
         return menuBar;
     }

@@ -17,4 +17,11 @@ public interface AccountManager {
      */
     Optional<AccountDTO> getUser();
 
+    /**
+     * @return True if the user has been logged in
+     */
+    default boolean isLoggedIn(){
+        return getUser().isPresent();
+    }
+
 }
