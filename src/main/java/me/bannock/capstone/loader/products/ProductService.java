@@ -1,17 +1,9 @@
-package me.bannock.capstone.loader.backend;
+package me.bannock.capstone.loader.products;
 
 import java.io.File;
 import java.util.List;
 
-public interface BackendService {
-
-    /**
-     * Checks to make sure the hwid matches and grabs the user's details
-     * @param hwid The user's hwid
-     * @return The user's account
-     * @throws RuntimeException If something goes wrong while logging in
-     */
-    AccountDTO login(String hwid) throws RuntimeException;
+public interface ProductService {
 
     /**
      * Grabs a list of all the products that the user currently owns
