@@ -13,7 +13,6 @@ public class LoaderModule extends AbstractModule {
     @Override
     protected void configure() {
         bind(AccountManager.class).to(BackendAccountManagerImpl.class).asEagerSingleton();
-
         bind(ProductService.class).to(BackendProductServiceImpl.class).asEagerSingleton();
         bind(HwidService.class).to(OshiHwidService.class).asEagerSingleton();
     }

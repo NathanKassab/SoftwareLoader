@@ -7,12 +7,14 @@ import com.google.inject.Stage;
 import me.bannock.capstone.loader.account.AccountManager;
 import me.bannock.capstone.loader.account.AccountManagerException;
 import me.bannock.capstone.loader.guice.LoaderModule;
+import me.bannock.capstone.loader.guice.LoaderUiModule;
 import me.bannock.capstone.loader.hwid.HwidService;
-import me.bannock.capstone.loader.ui.MainLoaderFrame;
+import me.bannock.capstone.loader.ui.frames.MainLoaderFrame;
 import me.bannock.capstone.loader.ui.UiUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import java.awt.Insets;
 
@@ -43,8 +45,10 @@ public class Loader {
             return;
         }
 
-        mainLoaderFrame.populateFrame();
-        mainLoaderFrame.setVisible(true);
+        SwingUtilities.invokeLater(() -> {
+            mainLoaderFrame.populateFrame();
+            mainLoaderFrame.setVisible(true);
+        });
     }
 
     public static void main(String[] args) {
@@ -54,9 +58,10 @@ public class Loader {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
             UIManager.put("TabbedPane.contentBorderInsets",
                     new Insets(0, 0, 0, 0));
+            UIManager.put("ScrollBar.width", 3);
         } catch (Exception ignored) {}
 
-        Injector injector = Guice.createInjector(Stage.PRODUCTION, new LoaderModule());
+        Injector injector = Guice.createInjector(Stage.PRODUCTION, new LoaderModule(), new LoaderUiModule());
         injector.getInstance(Loader.class).start();
 
     }
