@@ -45,13 +45,13 @@ public class BackendProductServiceImpl implements ProductService {
     private final File workingDir = new File("working/");
     private final CopyOnWriteArraySet<Long> productsBeingDownloaded = new CopyOnWriteArraySet<>();
 
-//    private final String apiKey = "BNOK_%%API_KEY%%";
-//    private final String serverIp = "BNOK_%%IP%%";
-//    private final String protocol = "BNOK_%%PROTOCOL%%";
+    private final String apiKey = "BNOK_%%API_KEY%%";
+    private final String serverIp = "BNOK_%%IP%%";
+    private final String protocol = "BNOK_%%PROTOCOL%%";
 
-    private final String apiKey = "5bde0aa5-e477-4f6a-ab6e-277888f16504";
-    private final String serverIp = "localhost:8080";
-    private final String protocol = "http";
+//    private final String apiKey = "5bde0aa5-e477-4f6a-ab6e-277888f16504";
+//    private final String serverIp = "localhost:8080";
+//    private final String protocol = "http";
 
     @Override
     public List<ProductDTO> getOwnedProducts() throws RuntimeException {
@@ -140,7 +140,7 @@ public class BackendProductServiceImpl implements ProductService {
 
             // We write over the file instead of deleting because the
             // JVM locks the file
-            wipeFileLater(downloadFile, 5000);
+            wipeFileLater(downloadFile, 10000);
 
             return process;
         } catch (IOException e) {

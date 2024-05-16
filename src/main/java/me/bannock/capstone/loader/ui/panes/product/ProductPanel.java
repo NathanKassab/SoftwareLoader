@@ -107,7 +107,7 @@ public class ProductPanel extends JPanel {
                     return;
                 }
 
-                String userProp = String.format("-Duser=%s", new Gson().toJson(user.get()));
+                String userProp = String.format("-DbnokUser=%s", new Gson().toJson(user.get()));
                 String disableAttach1 = "-XX:+DisableAttachMechanism";
                 String disableAttach2 = "-Dcom.ibm.tools.attach.enable=no";
                 Process productProcess = productService.launchProduct(product.getId(), userProp, disableAttach1, disableAttach2);

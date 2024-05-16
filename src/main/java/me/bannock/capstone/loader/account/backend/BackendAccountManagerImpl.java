@@ -22,15 +22,15 @@ public class BackendAccountManagerImpl implements AccountManager {
     private final Logger logger = LogManager.getLogger();
     private final CloseableHttpClient client = HttpClientBuilder.create().disableCookieManagement().build();
 
-//    private final String apiKey = "BNOK_%%API_KEY%%";
-//    private final String uid = "BNOK_%%UID%%";
-//    private final String serverIp = "BNOK_%%IP%%";
-//    private final String protocol = "BNOK_%%PROTOCOL%%";
+    private final String apiKey = "BNOK_%%API_KEY%%";
+    private final String uid = "BNOK_%%UID%%";
+    private final String serverIp = "BNOK_%%IP%%";
+    private final String protocol = "BNOK_%%PROTOCOL%%";
 
-    private final String apiKey = "5bde0aa5-e477-4f6a-ab6e-277888f16504";
-    private final String uid = "0";
-    private final String serverIp = "localhost:8080";
-    private final String protocol = "http";
+//    private final String apiKey = "5bde0aa5-e477-4f6a-ab6e-277888f16504";
+//    private final String uid = "0";
+//    private final String serverIp = "localhost:8080";
+//    private final String protocol = "http";
 
     private AccountDTO user = null;
 
