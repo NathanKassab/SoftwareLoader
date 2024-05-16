@@ -1,31 +1,50 @@
 package me.bannock.capstone.loader.ui.panes.product;
 
+import com.google.gson.Gson;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
+import me.bannock.capstone.loader.account.AccountDTO;
+import me.bannock.capstone.loader.account.AccountManager;
 import me.bannock.capstone.loader.products.ProductDTO;
 import me.bannock.capstone.loader.products.ProductService;
+import me.bannock.capstone.loader.security.SecurityManager;
 import me.bannock.capstone.loader.ui.UiUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import java.awt.BorderLayout;
+import java.awt.Container;
+import java.awt.Image;
+import java.io.IOException;
+import java.net.URL;
+import java.util.Optional;
 
 public class ProductPanel extends JPanel {
 
     @AssistedInject
-    public ProductPanel(@Assisted ProductDTO product, ProductService productService){
+    public ProductPanel(@Assisted ProductDTO product, ProductService productService,
+                        AccountManager accountManager, SecurityManager securityManager){
         this.product = product;
         this.productService = productService;
+        this.accountManager = accountManager;
+        this.securityManager = securityManager;
 
         create();
     }
 
+    private final Logger logger = LogManager.getLogger();
     private final ProductDTO product;
     private final ProductService productService;
+    private final AccountManager accountManager;
+    private final SecurityManager securityManager;
 
     private JPanel productOptionPane;
 
@@ -56,16 +75,7 @@ public class ProductPanel extends JPanel {
             productOptionPane.add(new JLabel("Unavailable"));
         }
         else if (productService.isProductDownloaded(product.getId())){
-            JButton launchButton = new JButton("Launch");
-            launchButton.addActionListener(evt -> {
-                try{
-                    productService.launchProduct(product.getId());
-                }catch (RuntimeException e){
-                    refreshOptionPane();
-                    UiUtils.displayErrorDialog("Unable to launch product", e.getMessage());
-                }
-            });
-            productOptionPane.add(launchButton);
+            productOptionPane.add(createLaunchButton());
         }
         else if (productService.isProductDownloading(product.getId())){
             productOptionPane.add(new JLabel("Downloading..."));
@@ -85,6 +95,38 @@ public class ProductPanel extends JPanel {
         }
 
         return productOptionPane;
+    }
+
+    private JButton createLaunchButton(){
+        JButton launchButton = new JButton("Launch");
+        launchButton.addActionListener(evt -> {
+            try{
+                Optional<AccountDTO> user = accountManager.getUser();
+                if (!user.isPresent()){
+                    logger.error("Failed to launch product because user is not logged in");
+                    return;
+                }
+
+                String userProp = String.format("-Duser=%s", new Gson().toJson(user.get()));
+                String disableAttach1 = "-XX:+DisableAttachMechanism";
+                String disableAttach2 = "-Dcom.ibm.tools.attach.enable=no";
+                Process productProcess = productService.launchProduct(product.getId(), userProp, disableAttach1, disableAttach2);
+                securityManager.protectProcess(productProcess);
+
+                Container parent = this;
+                do{
+                    parent = parent.getParent();
+                }while (parent != null && !(parent instanceof JFrame));
+                if (parent != null){
+                    ((JFrame) parent).dispose();
+                }
+            }catch (RuntimeException e){
+                refreshOptionPane();
+                logger.error("Something went wrong while launching the product, product={}", product, e);
+                UiUtils.displayErrorDialog("Unable to launch product", e.getMessage());
+            }
+        });
+        return launchButton;
     }
 
     /**
@@ -108,8 +150,16 @@ public class ProductPanel extends JPanel {
         productDisplayPane.setLayout(new BoxLayout(productDisplayPane, BoxLayout.Y_AXIS));
         productDisplayPane.setBorder(new EmptyBorder(0, 8, 0, 0));
 
-        String displayNameHtml = String.format("<html><h3>%s</h3><html>", product.getName());
-        productDisplayPane.add(new JLabel(displayNameHtml));
+        String productNameHtml = String.format("<html><h3>%s</h3><html>", product.getName());
+        JLabel productName = new JLabel(productNameHtml);
+        try {
+            int fontSize = productName.getFont().getSize() * 3;
+            Image buttonIcon = UiUtils.createScaledImage(new URL(product.getIconUrl()), fontSize);
+            productName.setIcon(new ImageIcon(buttonIcon));
+        } catch (IOException e) {
+            logger.warn("Unable to load icon for product, iconUrl={}", product.getIconUrl(), e);
+        }
+        productDisplayPane.add(productName);
 
         productDisplayPane.add(new JLabel("$" + product.getPrice()));
         productDisplayPane.add(new JLabel(product.getDescription()));

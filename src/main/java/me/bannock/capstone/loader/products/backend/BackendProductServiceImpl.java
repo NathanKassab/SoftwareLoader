@@ -14,6 +14,7 @@ import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -22,6 +23,8 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 public class BackendProductServiceImpl implements ProductService {
@@ -42,13 +45,13 @@ public class BackendProductServiceImpl implements ProductService {
     private final File workingDir = new File("working/");
     private final CopyOnWriteArraySet<Long> productsBeingDownloaded = new CopyOnWriteArraySet<>();
 
-    private final String apiKey = "BNOK_%%API_KEY%%";
-    private final String serverIp = "BNOK_%%IP%%";
-    private final String protocol = "BNOK_%%PROTOCOL%%";
+//    private final String apiKey = "BNOK_%%API_KEY%%";
+//    private final String serverIp = "BNOK_%%IP%%";
+//    private final String protocol = "BNOK_%%PROTOCOL%%";
 
-//    private final String apiKey = "5bde0aa5-e477-4f6a-ab6e-277888f16504";
-//    private final String serverIp = "localhost:8080";
-//    private final String protocol = "http";
+    private final String apiKey = "5bde0aa5-e477-4f6a-ab6e-277888f16504";
+    private final String serverIp = "localhost:8080";
+    private final String protocol = "http";
 
     @Override
     public List<ProductDTO> getOwnedProducts() throws RuntimeException {
@@ -111,7 +114,7 @@ public class BackendProductServiceImpl implements ProductService {
     }
 
     @Override
-    public void launchProduct(long productId) throws RuntimeException {
+    public Process launchProduct(long productId, String... sysProperties) throws RuntimeException {
         File downloadFile = getProductDownloadFile(productId);
         if (!downloadFile.exists()){
             logger.error("Attempted to launch product where download file that does not exist, productId={}, file={}",
@@ -126,19 +129,45 @@ public class BackendProductServiceImpl implements ProductService {
         String javaw = String.format("%s/bin/javaw", System.getProperty("java.home"));
         javaw = new File(javaw).getAbsolutePath();
 
-        // TODO: We need to pass the user's account and
-        //  api key into the product's program arguments
-        ProcessBuilder processBuilder = new ProcessBuilder(javaw, "-jar", downloadFile.getAbsolutePath());
+        ArrayList<String> launchCmds = new ArrayList<>(Arrays.asList(javaw, "-jar", downloadFile.getAbsolutePath()));
+        launchCmds.addAll(1, Arrays.asList(sysProperties));
+
+        ProcessBuilder processBuilder = new ProcessBuilder(launchCmds);
         processBuilder.directory(productWorkingDir);
         try {
             Process process = processBuilder.start();
-            Thread.sleep(300);
-            System.exit(0);
-        } catch (IOException | InterruptedException e) {
+            logger.info("Launched product, productId={}, sysProps={}", productId, sysProperties);
+
+            // We write over the file instead of deleting because the
+            // JVM locks the file
+            wipeFileLater(downloadFile, 5000);
+
+            return process;
+        } catch (IOException e) {
             logger.error("Something went wrong while launching product, productId={}, file={}",
                     productId, downloadFile, e);
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * Waits a specific amount of time and then writes over the file
+     * with 0 bytes
+     * @param file The file to write over
+     */
+    private void wipeFileLater(File file, long delay){
+        Timer wipeFileTimer = new Timer();
+        TimerTask wipeFileTask = new TimerTask() {
+            @Override
+            public void run() {
+                try {
+                    writeInputStreamToFile(file, new ByteArrayInputStream(new byte[]{}));
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        };
+        wipeFileTimer.schedule(wipeFileTask, delay);
     }
 
     /**

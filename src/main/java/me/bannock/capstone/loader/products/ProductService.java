@@ -35,8 +35,10 @@ public interface ProductService {
     /**
      * Launches a product
      * @param productId The product's id
+     * @param sysProperties The system properties to start the product with
+     * @return The started process
      * @throws RuntimeException If something goes wrong while launching the product
      */
-    void launchProduct(long productId) throws RuntimeException;
+    Process launchProduct(long productId, String... sysProperties) throws RuntimeException;
 
 }

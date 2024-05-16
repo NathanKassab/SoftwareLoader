@@ -99,7 +99,7 @@ public class MainLoaderFrame extends JFrame {
                 Image buttonIcon = UiUtils.createScaledImage(new URL(product.getIconUrl()), fontSize);
                 openProduct.setIcon(new ImageIcon(buttonIcon));
             } catch (IOException e) {
-                logger.warn("Unable to load icon for product, iconUrl={}", product.getIconUrl());
+                logger.warn("Unable to load icon for product, iconUrl={}", product.getIconUrl(), e);
             }
 
             openProduct.addActionListener(evt -> changeProducts(product));

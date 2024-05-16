@@ -7,13 +7,17 @@ import me.bannock.capstone.loader.hwid.HwidService;
 import me.bannock.capstone.loader.hwid.oshi.OshiHwidService;
 import me.bannock.capstone.loader.products.ProductService;
 import me.bannock.capstone.loader.products.backend.BackendProductServiceImpl;
+import me.bannock.capstone.loader.security.SecurityManager;
+import me.bannock.capstone.loader.security.simple.SimpleSecurityManagerImpl;
 
 public class LoaderModule extends AbstractModule {
 
     @Override
     protected void configure() {
-        bind(AccountManager.class).to(BackendAccountManagerImpl.class).asEagerSingleton();
         bind(ProductService.class).to(BackendProductServiceImpl.class).asEagerSingleton();
         bind(HwidService.class).to(OshiHwidService.class).asEagerSingleton();
+        bind(SecurityManager.class).to(SimpleSecurityManagerImpl.class).asEagerSingleton();
+
+        bind(AccountManager.class).to(BackendAccountManagerImpl.class).asEagerSingleton();
     }
 }
