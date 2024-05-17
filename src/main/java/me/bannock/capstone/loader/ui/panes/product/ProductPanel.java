@@ -21,10 +21,11 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import java.awt.BorderLayout;
-import java.awt.Container;
 import java.awt.Image;
+import java.awt.Window;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.Optional;
 
 public class ProductPanel extends JPanel {
@@ -110,16 +111,12 @@ public class ProductPanel extends JPanel {
                 String userProp = String.format("-DbnokUser=%s", new Gson().toJson(user.get()));
                 String disableAttach1 = "-XX:+DisableAttachMechanism";
                 String disableAttach2 = "-Dcom.ibm.tools.attach.enable=no";
-                Process productProcess = productService.launchProduct(product.getId(), userProp, disableAttach1, disableAttach2);
+                String noVerify = "-noverify";
+                Process productProcess = productService.launchProduct(
+                        product.getId(), userProp, disableAttach1, disableAttach2, noVerify
+                );
                 securityManager.protectProcess(productProcess);
-
-                Container parent = this;
-                do{
-                    parent = parent.getParent();
-                }while (parent != null && !(parent instanceof JFrame));
-                if (parent != null){
-                    ((JFrame) parent).dispose();
-                }
+                Arrays.stream(JFrame.getFrames()).forEach(Window::dispose);
             }catch (RuntimeException e){
                 refreshOptionPane();
                 logger.error("Something went wrong while launching the product, product={}", product, e);
@@ -146,10 +143,12 @@ public class ProductPanel extends JPanel {
      * @return The built product display pane
      */
     private JPanel buildProductDisplayPane(){
+        JPanel productDisplayPaneContainer = new JPanel();
+        productDisplayPaneContainer.setLayout(new BorderLayout());
+        productDisplayPaneContainer.setBorder(new EmptyBorder(0, 8, 0, 0));
+
         JPanel productDisplayPane = new JPanel();
         productDisplayPane.setLayout(new BoxLayout(productDisplayPane, BoxLayout.Y_AXIS));
-        productDisplayPane.setBorder(new EmptyBorder(0, 8, 0, 0));
-
         String productNameHtml = String.format("<html><h3>%s</h3><html>", product.getName());
         JLabel productName = new JLabel(productNameHtml);
         try {
@@ -160,11 +159,16 @@ public class ProductPanel extends JPanel {
             logger.warn("Unable to load icon for product, iconUrl={}", product.getIconUrl(), e);
         }
         productDisplayPane.add(productName);
-
         productDisplayPane.add(new JLabel("$" + product.getPrice()));
-        productDisplayPane.add(new JLabel(product.getDescription()));
 
-        return productDisplayPane;
+        JPanel descriptionContainer = new JPanel();
+        descriptionContainer.setLayout(new BorderLayout());
+        descriptionContainer.add(new JLabel(String.format("<html>%s<html>", product.getDescription())), BorderLayout.NORTH);
+
+        productDisplayPaneContainer.add(productDisplayPane, BorderLayout.NORTH);
+        productDisplayPaneContainer.add(descriptionContainer, BorderLayout.CENTER);
+
+        return productDisplayPaneContainer;
     }
 
 }

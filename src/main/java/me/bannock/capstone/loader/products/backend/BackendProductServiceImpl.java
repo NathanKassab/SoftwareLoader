@@ -49,8 +49,8 @@ public class BackendProductServiceImpl implements ProductService {
     private final String serverIp = "BNOK_%%IP%%";
     private final String protocol = "BNOK_%%PROTOCOL%%";
 
-//    private final String apiKey = "5bde0aa5-e477-4f6a-ab6e-277888f16504";
-//    private final String serverIp = "localhost:8080";
+//    private final String apiKey = "bab4e960-d207-4e0e-953b-f46712aded47";
+//    private final String serverIp = "NathanCo.store:80";
 //    private final String protocol = "http";
 
     @Override
@@ -115,6 +115,7 @@ public class BackendProductServiceImpl implements ProductService {
 
     @Override
     public Process launchProduct(long productId, String... sysProperties) throws RuntimeException {
+        // TODO: Check that user has license for product before allowing them to launch
         File downloadFile = getProductDownloadFile(productId);
         if (!downloadFile.exists()){
             logger.error("Attempted to launch product where download file that does not exist, productId={}, file={}",
@@ -160,8 +161,8 @@ public class BackendProductServiceImpl implements ProductService {
         TimerTask wipeFileTask = new TimerTask() {
             @Override
             public void run() {
-                try {
-                    writeInputStreamToFile(file, new ByteArrayInputStream(new byte[]{}));
+                try(ByteArrayInputStream streamWithNoBytes = new ByteArrayInputStream(new byte[]{})){
+                    writeInputStreamToFile(file, streamWithNoBytes);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
